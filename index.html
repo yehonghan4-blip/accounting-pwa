@@ -618,6 +618,10 @@ textarea.form-input { resize: vertical; min-height: 80px; }
       <button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="openAddCompany()">+ 添加公司</button>
     </div>
     <div class="section">
+      <div class="section-title" style="margin-bottom:14px"><span class="icon">🔔</span> 提醒设置</div>
+      <div id="notifySettings"></div>
+    </div>
+    <div class="section">
       <div class="section-title" style="margin-bottom:14px"><span class="icon">⚙️</span> 数据管理</div>
       <div class="setting-item" onclick="exportData()">
         <span class="setting-label">📤 导出数据</span>
@@ -820,21 +824,40 @@ let confirmCallback = null;
 function defaultData() {
   return {
     companies: [
-      { id: 'c1', name: '公司A' },
-      { id: 'c2', name: '公司B' }
+      { id: 'panyang', name: '潘阳' },
+      { id: 'yuanzhang', name: '院长' }
     ],
-    todos: [],
+    todos: (function(){
+      var d = new Date();
+      var today = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+      return [
+        { id: 'init1', title: '跟踪南方供应商（持续）', due: today, priority: 'urgent', companyId: 'panyang', note: '持续跟踪，待截图补充详细信息', done: false, createdAt: Date.now() }
+      ];
+    })(),
     archives: [],
     templates: [
-      { id: 't1', name: '增值税申报', day: 15, priority: 'urgent', companyId: '__all__', note: '每月15日前完成' },
-      { id: 't2', name: '企业所得税预缴', day: 15, priority: 'urgent', companyId: '__all__', note: '季度预缴，1/4/7/10月' },
-      { id: 't3', name: '个税申报', day: 15, priority: 'urgent', companyId: '__all__', note: '自然人电子税务局' },
-      { id: 't4', name: '社保公积金缴纳', day: 25, priority: 'normal', companyId: '__all__', note: '' },
-      { id: 't5', name: '银行对账', day: 5, priority: 'normal', companyId: '__all__', note: '打印银行对账单' },
-      { id: 't6', name: '凭证装订归档', day: 28, priority: 'low', companyId: '__all__', note: '整理装订本月凭证' },
-      { id: 't7', name: '发票认证抵扣', day: 25, priority: 'urgent', companyId: '__all__', note: '勾选认证进项发票' },
-      { id: 't8', name: '出具财务报表', day: 10, priority: 'normal', companyId: '__all__', note: '资产负债表、利润表、现金流量表' }
+      // ===== 潘阳 - 记账报税 =====
+      { id: 't1', name: '增值税申报', day: 15, priority: 'urgent', companyId: 'panyang', note: '每月15日前完成申报' },
+      { id: 't2', name: '个税申报', day: 15, priority: 'urgent', companyId: 'panyang', note: '自然人电子税务局' },
+      { id: 't3', name: '企业所得税预缴', day: 15, priority: 'urgent', companyId: 'panyang', note: '季度预缴（1/4/7/10月）' },
+      { id: 't4', name: '发票认证抵扣', day: 25, priority: 'urgent', companyId: 'panyang', note: '勾选认证进项发票' },
+      { id: 't5', name: '银行对账', day: 5, priority: 'normal', companyId: 'panyang', note: '打印银行对账单' },
+      { id: 't6', name: '出具财务报表', day: 10, priority: 'normal', companyId: 'panyang', note: '资产负债表、利润表、现金流量表' },
+      { id: 't7', name: '凭证装订归档', day: 28, priority: 'low', companyId: 'panyang', note: '整理装订本月凭证' },
+      // ===== 院长 - 打款/费用/报表 =====
+      { id: 't8', name: '打款-侯宇（视频拍剪费）', day: 1, priority: 'urgent', companyId: 'yuanzhang', note: '按出表金额打给侯宇，出表后及时操作' },
+      { id: 't9', name: '打款-我的费用', day: 1, priority: 'urgent', companyId: 'yuanzhang', note: '固定1000元' },
+      { id: 't10', name: '打款-刘院长（耗材费+学检费）', day: 5, priority: 'urgent', companyId: 'yuanzhang', note: '月初打给刘院长，他有时忘记/慢，需持续跟进提醒' },
+      { id: 't11', name: '发工资', day: 18, priority: 'urgent', companyId: 'yuanzhang', note: '每月18号发工资' },
+      { id: 't12', name: '打款-张总（股金）', day: 20, priority: 'urgent', companyId: 'yuanzhang', note: '每月20号打给张总' },
+      { id: 't13', name: '打款-场地费', day: 28, priority: 'normal', companyId: 'yuanzhang', note: '每月28号支付场地费' },
+      { id: 't14', name: '每周出报表', day: 7, priority: 'normal', companyId: 'yuanzhang', note: '从微信课堂汇总群获取数据，每周整理出报表', isWeekly: true }
     ],
+    settings: {
+      reminderDays: 2,
+      notificationEnabled: false,
+      lastNotifyDate: ''
+    },
     currentCompany: 'all'
   };
 }
@@ -1279,6 +1302,7 @@ function renderSettings() {
       <span class="setting-value" style="cursor:pointer;color:var(--danger)" onclick="removeCompany('${c.id}')">删除</span>
     </div>
   `).join('');
+  renderNotifySettings();
 }
 
 function openAddCompany() {
@@ -1485,6 +1509,8 @@ function init() {
 
   renderCompanyTabs();
   renderAll();
+  initNotifications();
+  checkAndNotify();
 
   // 点击模态框背景关闭
   document.querySelectorAll('.modal-overlay').forEach(el => {
@@ -1495,6 +1521,130 @@ function init() {
 }
 
 init();
+
+// ========== 通知提醒系统 ==========
+function initNotifications() {
+  // 确保 settings 存在
+  if (!DATA.settings) {
+    DATA.settings = { reminderDays: 2, notificationEnabled: false, lastNotifyDate: '' };
+    saveData();
+  }
+  // 检查通知权限并请求
+  if ('Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
+}
+
+function enableNotifications() {
+  if (!('Notification' in window)) {
+    showToast('此浏览器不支持通知功能');
+    return;
+  }
+  Notification.requestPermission().then(function(permission) {
+    if (permission === 'granted') {
+      DATA.settings.notificationEnabled = true;
+      saveData();
+      showToast('通知已开启');
+      checkAndNotify();
+      renderSettings();
+    } else {
+      showToast('请在浏览器设置中允许通知');
+    }
+  });
+}
+
+function disableNotifications() {
+  DATA.settings.notificationEnabled = false;
+  saveData();
+  showToast('通知已关闭');
+  renderSettings();
+}
+
+function setReminderDays(days) {
+  DATA.settings.reminderDays = days;
+  saveData();
+  showToast(`已设置为提前${days}天提醒`);
+  renderSettings();
+}
+
+function checkAndNotify() {
+  if (!DATA.settings || !DATA.settings.notificationEnabled) return;
+
+  const today = todayStr();
+  const lastNotify = DATA.settings.lastNotifyDate || '';
+  if (lastNotify === today) return; // 今天已通知过
+
+  const reminderDays = DATA.settings.reminderDays || 2;
+  const upcoming = [];
+  const overdue = [];
+
+  DATA.todos.filter(t => !t.done).forEach(t => {
+    const days = daysUntil(t.due);
+    if (days < 0) {
+      overdue.push(t);
+    } else if (days <= reminderDays) {
+      upcoming.push(t);
+    }
+  });
+
+  if (overdue.length > 0 || upcoming.length > 0) {
+    let body = '';
+    if (overdue.length > 0) {
+      body += `⚠️ 逾期${overdue.length}项: `;
+      body += overdue.slice(0, 3).map(t => t.title).join('、');
+      if (overdue.length > 3) body += ` 等${overdue.length}项`;
+      body += '\n';
+    }
+    if (upcoming.length > 0) {
+      body += `📋 即将到期${upcoming.length}项: `;
+      body += upcoming.slice(0, 3).map(t => `${t.title}(${formatDate(t.due)})`).join('、');
+    }
+
+    if ('Notification' in window && Notification.permission === 'granted') {
+      new Notification('会计工作台提醒', {
+        body: body,
+        icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="%234F6EF7"/><text x="50" y="72" font-size="50" text-anchor="middle" fill="white">📊</text></svg>',
+        tag: 'accounting-reminder',
+        requireInteraction: true
+      });
+    }
+
+    DATA.settings.lastNotifyDate = today;
+    saveData();
+  }
+}
+
+// 更新设置页面的通知相关UI
+function renderNotifySettings() {
+  const wrap = document.getElementById('notifySettings');
+  if (!wrap) return;
+
+  if (!DATA.settings) {
+    DATA.settings = { reminderDays: 2, notificationEnabled: false, lastNotifyDate: '' };
+  }
+
+  const enabled = DATA.settings.notificationEnabled;
+  const days = DATA.settings.reminderDays || 2;
+
+  let html = `
+    <div class="setting-item">
+      <span class="setting-label">🔔 消息通知提醒</span>
+      <span class="setting-value" style="cursor:pointer;${enabled ? 'color:var(--success)' : 'color:var(--primary)'}" onclick="${enabled ? 'disableNotifications()' : 'enableNotifications()'}">
+        ${enabled ? '已开启 ✓' : '点击开启'}
+      </span>
+    </div>
+    <div class="setting-item">
+      <span class="setting-label">⏰ 提前提醒天数</span>
+      <span class="setting-value">
+        ${[1,2,3].map(d => `<span style="cursor:pointer;padding:2px 8px;border-radius:4px;${days===d?'background:var(--primary);color:white':'background:var(--bg)'}" onclick="setReminderDays(${d})">${d}天</span>`).join(' ')}
+      </span>
+    </div>
+    <div style="font-size:12px;color:var(--text3);padding:8px 0;line-height:1.6">
+      ${enabled ? '✅ 每天打开APP时自动检查待办，到期的会弹出通知' : '开启后，打开APP时会检查逾期和即将到期的事项'}
+    </div>
+  `;
+  wrap.innerHTML = html;
+}
 
 // PWA Service Worker 注册
 if ('serviceWorker' in navigator) {
