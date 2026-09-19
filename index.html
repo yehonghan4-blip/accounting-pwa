@@ -1,0 +1,1512 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<script>
+!(function(j,a,g){j.__itrace_conf = {bid: 'f43basl8-6nqu7l3w',rel: '0.0.1', spa: true, uid: '', plugins:['jserror','interface','perf','resource','flow','blank']};var b = a.createElement("script");var d = a.getElementsByTagName("script")[0];b.type = "text/javascript";b.crossorigin = true;b.async = true;b.onload = function(){j.__itrace && j.__itrace.setReady()};d.parentNode.insertBefore(b,d);b.src = g})(window, document, "https://g.alicdn.com/woodpeckerx/itrace-next/itrace.iife.js")
+</script>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>会计工作台</title>
+<!-- PWA 支持：添加到主屏幕后以 APP 形式运行 -->
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="会计工作台">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#4F6EF7">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='96' fill='%234F6EF7'/><text x='256' y='340' font-size='280' text-anchor='middle' fill='white' font-family='Arial'>📊</text></svg>">
+<style>
+:root {
+  --primary: #4F6EF7;
+  --primary-light: #EEF1FE;
+  --danger: #E54D4D;
+  --danger-light: #FDECEC;
+  --success: #34C759;
+  --success-light: #E8F9ED;
+  --warning: #F5A623;
+  --warning-light: #FEF5E6;
+  --bg: #F5F6FA;
+  --card: #FFFFFF;
+  --text: #1A1A2E;
+  --text2: #6B7280;
+  --text3: #9CA3AF;
+  --border: #E5E7EB;
+  --shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding-bottom: 80px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 顶栏 */
+.header {
+  background: linear-gradient(135deg, #4F6EF7 0%, #6C8CFF 100%);
+  color: white;
+  padding: 20px 16px 16px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.header h1 { font-size: 20px; font-weight: 700; }
+.header-date { font-size: 13px; opacity: 0.85; }
+
+/* 公司切换 */
+.company-tabs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: 4px;
+}
+.company-tabs::-webkit-scrollbar { display: none; }
+.company-tab {
+  flex-shrink: 0;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  background: rgba(255,255,255,0.2);
+  color: white;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+.company-tab.active {
+  background: white;
+  color: var(--primary);
+  font-weight: 600;
+}
+.company-tab.add-tab {
+  background: rgba(255,255,255,0.15);
+  font-size: 16px;
+  padding: 6px 12px;
+}
+
+/* 内容区 */
+.content { padding: 16px; }
+
+/* 统计卡片 */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.stat-card {
+  background: var(--card);
+  border-radius: 12px;
+  padding: 14px 12px;
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+.stat-num { font-size: 24px; font-weight: 700; }
+.stat-num.red { color: var(--danger); }
+.stat-num.orange { color: var(--warning); }
+.stat-num.green { color: var(--success); }
+.stat-label { font-size: 11px; color: var(--text2); margin-top: 4px; }
+
+/* 区块 */
+.section {
+  background: var(--card);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow);
+}
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+.section-title {
+  font-size: 16px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.section-title .icon { font-size: 18px; }
+
+/* 待办项 */
+.todo-item {
+  display: flex;
+  align-items: flex-start;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+  gap: 10px;
+}
+.todo-item:last-child { border-bottom: none; }
+.todo-check {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  flex-shrink: 0;
+  margin-top: 2px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+.todo-check.done {
+  background: var(--success);
+  border-color: var(--success);
+}
+.todo-check.done::after {
+  content: '✓';
+  color: white;
+  font-size: 13px;
+  font-weight: 700;
+}
+.todo-body { flex: 1; min-width: 0; }
+.todo-title {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+.todo-title.done { text-decoration: line-through; color: var(--text3); }
+.todo-meta {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--text2);
+}
+.todo-due { color: var(--danger); font-weight: 500; }
+.todo-due.soon { color: var(--warning); }
+.todo-due.ok { color: var(--success); }
+.todo-actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.todo-action-btn {
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: var(--bg);
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.todo-action-btn:hover { background: var(--border); }
+
+/* 标签 */
+.tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+}
+.tag-urgent { background: var(--danger-light); color: var(--danger); }
+.tag-normal { background: var(--primary-light); color: var(--primary); }
+.tag-low { background: var(--success-light); color: var(--success); }
+
+/* 按钮 */
+.btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-primary { background: var(--primary); color: white; }
+.btn-primary:active { transform: scale(0.96); }
+.btn-sm { padding: 6px 12px; font-size: 12px; }
+.btn-text { background: none; color: var(--primary); padding: 4px 8px; }
+
+/* 底部导航 */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  display: flex;
+  border-top: 1px solid var(--border);
+  z-index: 100;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 0;
+  font-size: 10px;
+  color: var(--text3);
+  cursor: pointer;
+  border: none;
+  background: none;
+  transition: color 0.2s;
+}
+.nav-item .nav-icon { font-size: 22px; margin-bottom: 2px; }
+.nav-item.active { color: var(--primary); }
+
+/* 模态框 */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 200;
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+}
+.modal-overlay.show { display: flex; }
+.modal {
+  background: white;
+  width: 100%;
+  max-width: 500px;
+  border-radius: 20px 20px 0 0;
+  padding: 24px 20px;
+  padding-bottom: calc(24px + env(safe-area-inset-bottom));
+  max-height: 85vh;
+  overflow-y: auto;
+  animation: slideUp 0.3s ease;
+}
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+.modal h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  text-align: center;
+}
+.form-group { margin-bottom: 16px; }
+.form-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text2);
+  margin-bottom: 6px;
+  display: block;
+}
+.form-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.2s;
+  font-family: inherit;
+}
+.form-input:focus { border-color: var(--primary); }
+select.form-input { appearance: none; background: white; }
+textarea.form-input { resize: vertical; min-height: 80px; }
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+}
+.modal-actions .btn { flex: 1; padding: 12px; font-size: 15px; border-radius: 12px; }
+.btn-cancel { background: var(--bg); color: var(--text); }
+.btn-danger { background: var(--danger); color: white; }
+
+/* 归档区 */
+.archive-item {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+.archive-item:last-child { border-bottom: none; }
+.archive-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.archive-title { font-size: 14px; font-weight: 500; }
+.archive-date { font-size: 12px; color: var(--text3); }
+.archive-content {
+  font-size: 13px;
+  color: var(--text2);
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+.archive-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  background: var(--primary-light);
+  color: var(--primary);
+  margin-right: 4px;
+  margin-top: 6px;
+}
+.archive-search {
+  width: 100%;
+  padding: 10px 12px 10px 36px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 14px;
+  outline: none;
+  margin-bottom: 12px;
+  background: var(--bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%239CA3AF' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z'/%3E%3C/svg%3E") no-repeat 12px center;
+}
+
+/* 月历视图 */
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  text-align: center;
+  font-size: 13px;
+}
+.cal-header { font-size: 11px; color: var(--text3); font-weight: 500; padding: 8px 0; }
+.cal-day {
+  padding: 8px 0;
+  border-radius: 8px;
+  cursor: pointer;
+  position: relative;
+}
+.cal-day.today { background: var(--primary-light); font-weight: 600; color: var(--primary); }
+.cal-day.has-task::after {
+  content: '';
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--danger);
+  position: absolute;
+  bottom: 3px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.cal-day.other-month { color: var(--text3); }
+.cal-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.cal-nav h4 { font-size: 15px; font-weight: 600; }
+.cal-nav button {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: var(--bg);
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+/* 空状态 */
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text3);
+}
+.empty-state .empty-icon { font-size: 48px; margin-bottom: 12px; }
+.empty-state p { font-size: 14px; }
+
+/* 页面切换 */
+.page { display: none; }
+.page.active { display: block; }
+
+/* 模板管理 */
+.tpl-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+  gap: 10px;
+}
+.tpl-item:last-child { border-bottom: none; }
+.tpl-info { flex: 1; }
+.tpl-name { font-size: 14px; font-weight: 500; }
+.tpl-desc { font-size: 12px; color: var(--text2); margin-top: 2px; }
+
+/* Toast */
+.toast {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0,0,0,0.75);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-size: 14px;
+  z-index: 999;
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+.toast.show { opacity: 1; }
+
+/* 快捷操作浮标 */
+.fab {
+  position: fixed;
+  right: 16px;
+  bottom: calc(70px + env(safe-area-inset-bottom));
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4F6EF7, #6C8CFF);
+  color: white;
+  border: none;
+  font-size: 26px;
+  box-shadow: 0 4px 16px rgba(79,110,247,0.4);
+  cursor: pointer;
+  z-index: 99;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.fab:active { transform: scale(0.92); }
+
+/* 设置页 */
+.setting-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+.setting-item:last-child { border-bottom: none; }
+.setting-label { font-size: 14px; }
+.setting-value { font-size: 14px; color: var(--text2); }
+
+/* 确认对话框 */
+.confirm-box {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 300;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.confirm-box.show { display: flex; }
+.confirm-card {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  width: 100%;
+  max-width: 320px;
+  text-align: center;
+}
+.confirm-card p { font-size: 15px; margin-bottom: 20px; line-height: 1.5; }
+.confirm-actions { display: flex; gap: 12px; }
+.confirm-actions .btn { flex: 1; padding: 10px; }
+</style>
+</head>
+<body>
+
+<!-- 顶栏 -->
+<div class="header">
+  <div class="header-top">
+    <h1>📊 会计工作台</h1>
+    <span class="header-date" id="headerDate"></span>
+  </div>
+  <div class="company-tabs" id="companyTabs"></div>
+</div>
+
+<!-- 待办页 -->
+<div class="page active" id="pageTodo">
+  <div class="content">
+    <div class="stats-row" id="statsRow"></div>
+
+    <!-- 日历折叠 -->
+    <div class="section" id="calendarSection">
+      <div class="section-header" onclick="toggleCalendar()">
+        <div class="section-title"><span class="icon">📅</span> 月历</div>
+        <span id="calToggle" style="font-size:12px;color:var(--text3)">▼</span>
+      </div>
+      <div id="calendarWrap" style="display:none">
+        <div class="cal-nav">
+          <button onclick="changeMonth(-1)">◀</button>
+          <h4 id="calTitle"></h4>
+          <button onclick="changeMonth(1)">▶</button>
+        </div>
+        <div class="calendar-grid" id="calGrid"></div>
+      </div>
+    </div>
+
+    <!-- 待办列表 -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title"><span class="icon">✅</span> 待办事项</div>
+        <button class="btn btn-sm btn-primary" onclick="openAddTodo()">+ 新增</button>
+      </div>
+      <div id="todoList"></div>
+    </div>
+
+    <!-- 已完成 -->
+    <div class="section" id="doneSection" style="display:none">
+      <div class="section-header" onclick="toggleDone()">
+        <div class="section-title"><span class="icon">🎉</span> 已完成</div>
+        <span id="doneToggle" style="font-size:12px;color:var(--text3)">▼</span>
+      </div>
+      <div id="doneList" style="display:none"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 归档页 -->
+<div class="page" id="pageArchive">
+  <div class="content">
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title"><span class="icon">📁</span> 工作归档</div>
+        <button class="btn btn-sm btn-primary" onclick="openAddArchive()">+ 新增</button>
+      </div>
+      <input class="archive-search" id="archiveSearch" placeholder="搜索归档内容..." oninput="renderArchive()">
+      <div id="archiveList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 模板页 -->
+<div class="page" id="pageTemplate">
+  <div class="content">
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title"><span class="icon">📋</span> 月度模板</div>
+        <button class="btn btn-sm btn-primary" onclick="openAddTemplate()">+ 新增模板</button>
+      </div>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:12px">设置每月固定待办，月初自动生成到对应公司</p>
+      <div id="templateList"></div>
+    </div>
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title"><span class="icon">⚡</span> 快捷操作</div>
+      </div>
+      <button class="btn btn-primary" style="width:100%;padding:12px;margin-bottom:10px" onclick="generateMonthTasks()">
+        📅 一键生成本月待办
+      </button>
+      <p style="font-size:12px;color:var(--text3);text-align:center">将模板中的事项生成为当前月份的待办</p>
+    </div>
+  </div>
+</div>
+
+<!-- 设置页 -->
+<div class="page" id="pageSettings">
+  <div class="content">
+    <div class="section">
+      <div class="section-title" style="margin-bottom:14px"><span class="icon">🏢</span> 公司管理</div>
+      <div id="companyList"></div>
+      <button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="openAddCompany()">+ 添加公司</button>
+    </div>
+    <div class="section">
+      <div class="section-title" style="margin-bottom:14px"><span class="icon">⚙️</span> 数据管理</div>
+      <div class="setting-item" onclick="exportData()">
+        <span class="setting-label">📤 导出数据</span>
+        <span class="setting-value">备份到文件</span>
+      </div>
+      <div class="setting-item" onclick="importData()">
+        <span class="setting-label">📥 导入数据</span>
+        <span class="setting-value">从文件恢复</span>
+      </div>
+      <div class="setting-item" onclick="confirmClearData()">
+        <span class="setting-label" style="color:var(--danger)">🗑️ 清空所有数据</span>
+        <span class="setting-value"></span>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title" style="margin-bottom:14px"><span class="icon">ℹ️</span> 关于</div>
+      <p style="font-size:13px;color:var(--text2);line-height:1.8">
+        会计工作台 v1.0<br>
+        数据保存在手机本地，关闭浏览器不会丢失<br>
+        建议定期导出备份
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- 底部导航 -->
+<div class="bottom-nav">
+  <button class="nav-item active" onclick="switchPage('pageTodo', this)">
+    <span class="nav-icon">📋</span>待办
+  </button>
+  <button class="nav-item" onclick="switchPage('pageArchive', this)">
+    <span class="nav-icon">📁</span>归档
+  </button>
+  <button class="nav-item" onclick="switchPage('pageTemplate', this)">
+    <span class="nav-icon">📑</span>模板
+  </button>
+  <button class="nav-item" onclick="switchPage('pageSettings', this)">
+    <span class="nav-icon">⚙️</span>设置
+  </button>
+</div>
+
+<!-- 悬浮按钮 -->
+<button class="fab" onclick="openAddTodo()" id="fabBtn">+</button>
+
+<!-- 新增/编辑待办 模态框 -->
+<div class="modal-overlay" id="todoModal">
+  <div class="modal">
+    <h3 id="todoModalTitle">新增待办</h3>
+    <input type="hidden" id="todoEditId">
+    <div class="form-group">
+      <label class="form-label">事项名称</label>
+      <input class="form-input" id="todoTitle" placeholder="如：增值税申报">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">截止日期</label>
+        <input class="form-input" type="date" id="todoDue">
+      </div>
+      <div class="form-group">
+        <label class="form-label">优先级</label>
+        <select class="form-input" id="todoPriority">
+          <option value="urgent">🔴 紧急</option>
+          <option value="normal" selected>🔵 一般</option>
+          <option value="low">🟢 低</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">所属公司</label>
+      <select class="form-input" id="todoCompany"></select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">备注</label>
+      <textarea class="form-input" id="todoNote" placeholder="可选，补充说明..."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-cancel" onclick="closeModal('todoModal')">取消</button>
+      <button class="btn btn-primary" onclick="saveTodo()">保存</button>
+    </div>
+    <div id="todoDeleteWrap" style="display:none;margin-top:12px;text-align:center">
+      <button class="btn btn-danger" style="width:100%" onclick="deleteTodo()">删除此待办</button>
+    </div>
+  </div>
+</div>
+
+<!-- 新增归档 模态框 -->
+<div class="modal-overlay" id="archiveModal">
+  <div class="modal">
+    <h3 id="archiveModalTitle">新增归档</h3>
+    <input type="hidden" id="archiveEditId">
+    <div class="form-group">
+      <label class="form-label">标题</label>
+      <input class="form-input" id="archiveTitle" placeholder="如：XX公司3月税务沟通记录">
+    </div>
+    <div class="form-group">
+      <label class="form-label">所属公司</label>
+      <select class="form-input" id="archiveCompany"></select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">分类标签</label>
+      <input class="form-input" id="archiveTags" placeholder="如：税务,沟通记录,凭证（逗号分隔）">
+    </div>
+    <div class="form-group">
+      <label class="form-label">内容</label>
+      <textarea class="form-input" id="archiveContent" rows="6" placeholder="粘贴微信聊天记录、工作备注等..."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-cancel" onclick="closeModal('archiveModal')">取消</button>
+      <button class="btn btn-primary" onclick="saveArchive()">保存</button>
+    </div>
+    <div id="archiveDeleteWrap" style="display:none;margin-top:12px;text-align:center">
+      <button class="btn btn-danger" style="width:100%" onclick="deleteArchive()">删除此归档</button>
+    </div>
+  </div>
+</div>
+
+<!-- 新增公司 模态框 -->
+<div class="modal-overlay" id="companyModal">
+  <div class="modal">
+    <h3>管理公司</h3>
+    <div class="form-group">
+      <label class="form-label">公司名称</label>
+      <input class="form-input" id="companyName" placeholder="输入公司简称">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-cancel" onclick="closeModal('companyModal')">取消</button>
+      <button class="btn btn-primary" onclick="saveCompany()">添加</button>
+    </div>
+  </div>
+</div>
+
+<!-- 新增模板 模态框 -->
+<div class="modal-overlay" id="templateModal">
+  <div class="modal">
+    <h3 id="templateModalTitle">新增月度模板</h3>
+    <input type="hidden" id="templateEditId">
+    <div class="form-group">
+      <label class="form-label">事项名称</label>
+      <input class="form-input" id="tplName" placeholder="如：增值税申报">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">每月截止日期（几号）</label>
+        <input class="form-input" type="number" id="tplDay" min="1" max="31" placeholder="如：15">
+      </div>
+      <div class="form-group">
+        <label class="form-label">优先级</label>
+        <select class="form-input" id="tplPriority">
+          <option value="urgent">🔴 紧急</option>
+          <option value="normal" selected>🔵 一般</option>
+          <option value="low">🟢 低</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">适用公司</label>
+      <select class="form-input" id="tplCompany">
+        <option value="__all__">所有公司</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">备注</label>
+      <textarea class="form-input" id="tplNote" placeholder="可选"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-cancel" onclick="closeModal('templateModal')">取消</button>
+      <button class="btn btn-primary" onclick="saveTemplate()">保存</button>
+    </div>
+    <div id="templateDeleteWrap" style="display:none;margin-top:12px;text-align:center">
+      <button class="btn btn-danger" style="width:100%" onclick="deleteTemplate()">删除此模板</button>
+    </div>
+  </div>
+</div>
+
+<!-- 确认框 -->
+<div class="confirm-box" id="confirmBox">
+  <div class="confirm-card">
+    <p id="confirmMsg"></p>
+    <div class="confirm-actions">
+      <button class="btn btn-cancel" onclick="closeConfirm()">取消</button>
+      <button class="btn btn-danger" id="confirmOkBtn" onclick="confirmOk()">确定</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- 隐藏的文件导入 input -->
+<input type="file" id="importFileInput" accept=".json" style="display:none" onchange="handleImportFile(event)">
+
+<script>
+// ========== 数据层 ==========
+const STORAGE_KEY = 'accounting_workbench';
+let DATA = loadData();
+let currentCompanyId = DATA.currentCompany || 'all';
+let calYear, calMonth;
+let confirmCallback = null;
+
+function defaultData() {
+  return {
+    companies: [
+      { id: 'c1', name: '公司A' },
+      { id: 'c2', name: '公司B' }
+    ],
+    todos: [],
+    archives: [],
+    templates: [
+      { id: 't1', name: '增值税申报', day: 15, priority: 'urgent', companyId: '__all__', note: '每月15日前完成' },
+      { id: 't2', name: '企业所得税预缴', day: 15, priority: 'urgent', companyId: '__all__', note: '季度预缴，1/4/7/10月' },
+      { id: 't3', name: '个税申报', day: 15, priority: 'urgent', companyId: '__all__', note: '自然人电子税务局' },
+      { id: 't4', name: '社保公积金缴纳', day: 25, priority: 'normal', companyId: '__all__', note: '' },
+      { id: 't5', name: '银行对账', day: 5, priority: 'normal', companyId: '__all__', note: '打印银行对账单' },
+      { id: 't6', name: '凭证装订归档', day: 28, priority: 'low', companyId: '__all__', note: '整理装订本月凭证' },
+      { id: 't7', name: '发票认证抵扣', day: 25, priority: 'urgent', companyId: '__all__', note: '勾选认证进项发票' },
+      { id: 't8', name: '出具财务报表', day: 10, priority: 'normal', companyId: '__all__', note: '资产负债表、利润表、现金流量表' }
+    ],
+    currentCompany: 'all'
+  };
+}
+
+function loadData() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch(e) {}
+  return defaultData();
+}
+
+function saveData() {
+  DATA.currentCompany = currentCompanyId;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(DATA));
+}
+
+function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+
+// ========== 工具 ==========
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+function formatDate(d) {
+  if (!d) return '';
+  const dt = new Date(d);
+  return `${dt.getMonth()+1}/${dt.getDate()}`;
+}
+
+function daysUntil(dateStr) {
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const target = new Date(dateStr);
+  target.setHours(0,0,0,0);
+  return Math.floor((target - today) / 86400000);
+}
+
+function dueLabel(dateStr) {
+  const d = daysUntil(dateStr);
+  if (d < 0) return { text: `已逾期${-d}天`, cls: 'red' };
+  if (d === 0) return { text: '今天截止', cls: 'soon' };
+  if (d <= 3) return { text: `还剩${d}天`, cls: 'soon' };
+  return { text: `还剩${d}天`, cls: 'ok' };
+}
+
+function priorityLabel(p) {
+  if (p === 'urgent') return '<span class="tag tag-urgent">紧急</span>';
+  if (p === 'normal') return '<span class="tag tag-normal">一般</span>';
+  return '<span class="tag tag-low">低</span>';
+}
+
+function getCompanyName(id) {
+  const c = DATA.companies.find(x => x.id === id);
+  return c ? c.name : '';
+}
+
+// ========== 公司切换 ==========
+function renderCompanyTabs() {
+  const el = document.getElementById('companyTabs');
+  let html = `<button class="company-tab ${currentCompanyId==='all'?'active':''}" onclick="switchCompany('all')">全部</button>`;
+  DATA.companies.forEach(c => {
+    html += `<button class="company-tab ${currentCompanyId===c.id?'active':''}" onclick="switchCompany('${c.id}')">${c.name}</button>`;
+  });
+  el.innerHTML = html;
+}
+
+function switchCompany(id) {
+  currentCompanyId = id;
+  saveData();
+  renderCompanyTabs();
+  renderAll();
+}
+
+// ========== 页面切换 ==========
+function switchPage(pageId, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(pageId).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  btn.classList.add('active');
+  // 浮标只在待办页显示
+  document.getElementById('fabBtn').style.display = pageId === 'pageTodo' ? 'flex' : 'none';
+  if (pageId === 'pageTemplate') renderTemplates();
+  if (pageId === 'pageSettings') renderSettings();
+  if (pageId === 'pageArchive') renderArchive();
+}
+
+// ========== 待办 ==========
+function getFilteredTodos() {
+  return DATA.todos.filter(t => currentCompanyId === 'all' || t.companyId === currentCompanyId);
+}
+
+function renderTodos() {
+  const todos = getFilteredTodos().filter(t => !t.done);
+  const done = getFilteredTodos().filter(t => t.done);
+
+  // 统计
+  const urgent = todos.filter(t => t.priority === 'urgent').length;
+  const overdue = todos.filter(t => daysUntil(t.due) < 0).length;
+  document.getElementById('statsRow').innerHTML = `
+    <div class="stat-card"><div class="stat-num red">${overdue}</div><div class="stat-label">已逾期</div></div>
+    <div class="stat-card"><div class="stat-num orange">${urgent}</div><div class="stat-label">紧急</div></div>
+    <div class="stat-card"><div class="stat-num green">${done.length}</div><div class="stat-label">已完成</div></div>
+  `;
+
+  // 按截止日期排序
+  todos.sort((a, b) => new Date(a.due) - new Date(b.due));
+
+  if (todos.length === 0) {
+    document.getElementById('todoList').innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">📋</div>
+        <p>暂无待办事项</p>
+        <p style="font-size:12px;margin-top:8px">点击右上角 + 或去模板页一键生成</p>
+      </div>`;
+  } else {
+    document.getElementById('todoList').innerHTML = todos.map(t => renderTodoItem(t)).join('');
+  }
+
+  // 已完成
+  if (done.length > 0) {
+    document.getElementById('doneSection').style.display = 'block';
+    done.sort((a, b) => (b.doneAt || 0) - (a.doneAt || 0));
+    document.getElementById('doneList').innerHTML = done.map(t => renderTodoItem(t)).join('');
+  } else {
+    document.getElementById('doneSection').style.display = 'none';
+  }
+
+  renderCalendar();
+}
+
+function renderTodoItem(t) {
+  const due = dueLabel(t.due);
+  const companyName = t.companyId ? getCompanyName(t.companyId) : '';
+  return `
+    <div class="todo-item">
+      <div class="todo-check ${t.done?'done':''}" onclick="toggleTodo('${t.id}')"></div>
+      <div class="todo-body" onclick="openEditTodo('${t.id}')">
+        <div class="todo-title ${t.done?'done':''}">${t.title}</div>
+        <div class="todo-meta">
+          <span class="todo-due ${due.cls}">${due.text}</span>
+          <span>${formatDate(t.due)}</span>
+          ${companyName ? `<span>🏢 ${companyName}</span>` : ''}
+          ${priorityLabel(t.priority)}
+        </div>
+        ${t.note ? `<div style="font-size:12px;color:var(--text3);margin-top:4px">${t.note}</div>` : ''}
+      </div>
+    </div>`;
+}
+
+function toggleTodo(id) {
+  const t = DATA.todos.find(x => x.id === id);
+  if (!t) return;
+  t.done = !t.done;
+  if (t.done) t.doneAt = Date.now();
+  else delete t.doneAt;
+  saveData();
+  renderTodos();
+  showToast(t.done ? '已完成 ✓' : '已恢复为待办');
+}
+
+function openAddTodo() {
+  document.getElementById('todoModalTitle').textContent = '新增待办';
+  document.getElementById('todoEditId').value = '';
+  document.getElementById('todoTitle').value = '';
+  document.getElementById('todoDue').value = todayStr();
+  document.getElementById('todoPriority').value = 'normal';
+  document.getElementById('todoNote').value = '';
+  document.getElementById('todoDeleteWrap').style.display = 'none';
+  fillCompanySelect('todoCompany');
+  openModal('todoModal');
+}
+
+function openEditTodo(id) {
+  const t = DATA.todos.find(x => x.id === id);
+  if (!t) return;
+  document.getElementById('todoModalTitle').textContent = '编辑待办';
+  document.getElementById('todoEditId').value = id;
+  document.getElementById('todoTitle').value = t.title;
+  document.getElementById('todoDue').value = t.due;
+  document.getElementById('todoPriority').value = t.priority;
+  document.getElementById('todoNote').value = t.note || '';
+  document.getElementById('todoDeleteWrap').style.display = 'block';
+  fillCompanySelect('todoCompany', t.companyId);
+  openModal('todoModal');
+}
+
+function saveTodo() {
+  const id = document.getElementById('todoEditId').value;
+  const title = document.getElementById('todoTitle').value.trim();
+  const due = document.getElementById('todoDue').value;
+  const priority = document.getElementById('todoPriority').value;
+  const companyId = document.getElementById('todoCompany').value;
+  const note = document.getElementById('todoNote').value.trim();
+
+  if (!title) { showToast('请输入事项名称'); return; }
+  if (!due) { showToast('请选择截止日期'); return; }
+
+  if (id) {
+    const t = DATA.todos.find(x => x.id === id);
+    if (t) { Object.assign(t, { title, due, priority, companyId, note }); }
+  } else {
+    DATA.todos.push({ id: genId(), title, due, priority, companyId, note, done: false, createdAt: Date.now() });
+  }
+  saveData();
+  closeModal('todoModal');
+  renderTodos();
+  showToast('保存成功');
+}
+
+function deleteTodo() {
+  const id = document.getElementById('todoEditId').value;
+  if (!id) return;
+  showConfirm('确定删除这条待办？', () => {
+    DATA.todos = DATA.todos.filter(x => x.id !== id);
+    saveData();
+    closeModal('todoModal');
+    renderTodos();
+    showToast('已删除');
+  });
+}
+
+// ========== 归档 ==========
+function renderArchive() {
+  const search = (document.getElementById('archiveSearch')?.value || '').toLowerCase();
+  let list = DATA.archives.filter(a => currentCompanyId === 'all' || a.companyId === currentCompanyId);
+  if (search) {
+    list = list.filter(a =>
+      a.title.toLowerCase().includes(search) ||
+      a.content.toLowerCase().includes(search) ||
+      (a.tags || []).some(t => t.toLowerCase().includes(search))
+    );
+  }
+  list.sort((a, b) => b.createdAt - a.createdAt);
+
+  if (list.length === 0) {
+    document.getElementById('archiveList').innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">📁</div>
+        <p>${search ? '未找到匹配内容' : '暂无归档记录'}</p>
+      </div>`;
+  } else {
+    document.getElementById('archiveList').innerHTML = list.map(a => `
+      <div class="archive-item" onclick="openEditArchive('${a.id}')">
+        <div class="archive-header">
+          <span class="archive-title">${a.title}</span>
+          <span class="archive-date">${new Date(a.createdAt).toLocaleDateString('zh-CN')}</span>
+        </div>
+        <div class="archive-content">${a.content.length > 100 ? a.content.slice(0, 100) + '...' : a.content}</div>
+        ${(a.tags||[]).map(t => `<span class="archive-tag">${t}</span>`).join('')}
+        ${a.companyId ? `<span class="archive-tag" style="background:var(--warning-light);color:var(--warning)">🏢 ${getCompanyName(a.companyId)}</span>` : ''}
+      </div>
+    `).join('');
+  }
+}
+
+function openAddArchive() {
+  document.getElementById('archiveModalTitle').textContent = '新增归档';
+  document.getElementById('archiveEditId').value = '';
+  document.getElementById('archiveTitle').value = '';
+  document.getElementById('archiveTags').value = '';
+  document.getElementById('archiveContent').value = '';
+  document.getElementById('archiveDeleteWrap').style.display = 'none';
+  fillCompanySelect('archiveCompany');
+  openModal('archiveModal');
+}
+
+function openEditArchive(id) {
+  const a = DATA.archives.find(x => x.id === id);
+  if (!a) return;
+  document.getElementById('archiveModalTitle').textContent = '编辑归档';
+  document.getElementById('archiveEditId').value = id;
+  document.getElementById('archiveTitle').value = a.title;
+  document.getElementById('archiveTags').value = (a.tags || []).join(',');
+  document.getElementById('archiveContent').value = a.content;
+  document.getElementById('archiveDeleteWrap').style.display = 'block';
+  fillCompanySelect('archiveCompany', a.companyId);
+  openModal('archiveModal');
+}
+
+function saveArchive() {
+  const id = document.getElementById('archiveEditId').value;
+  const title = document.getElementById('archiveTitle').value.trim();
+  const companyId = document.getElementById('archiveCompany').value;
+  const tags = document.getElementById('archiveTags').value.split(/[,，]/).map(s => s.trim()).filter(Boolean);
+  const content = document.getElementById('archiveContent').value.trim();
+
+  if (!title) { showToast('请输入标题'); return; }
+  if (!content) { showToast('请输入内容'); return; }
+
+  if (id) {
+    const a = DATA.archives.find(x => x.id === id);
+    if (a) { Object.assign(a, { title, companyId, tags, content }); }
+  } else {
+    DATA.archives.push({ id: genId(), title, companyId, tags, content, createdAt: Date.now() });
+  }
+  saveData();
+  closeModal('archiveModal');
+  renderArchive();
+  showToast('保存成功');
+}
+
+function deleteArchive() {
+  const id = document.getElementById('archiveEditId').value;
+  if (!id) return;
+  showConfirm('确定删除这条归档？', () => {
+    DATA.archives = DATA.archives.filter(x => x.id !== id);
+    saveData();
+    closeModal('archiveModal');
+    renderArchive();
+    showToast('已删除');
+  });
+}
+
+// ========== 模板 ==========
+function renderTemplates() {
+  const list = DATA.templates;
+  if (list.length === 0) {
+    document.getElementById('templateList').innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">📑</div>
+        <p>暂无模板，添加后每月可一键生成待办</p>
+      </div>`;
+    return;
+  }
+  document.getElementById('templateList').innerHTML = list.map(t => `
+    <div class="tpl-item" onclick="openEditTemplate('${t.id}')">
+      <div class="tpl-info">
+        <div class="tpl-name">${t.name} ${priorityLabel(t.priority)}</div>
+        <div class="tpl-desc">每月${t.day}号截止 · ${t.companyId === '__all__' ? '所有公司' : getCompanyName(t.companyId)}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function openAddTemplate() {
+  document.getElementById('templateModalTitle').textContent = '新增月度模板';
+  document.getElementById('templateEditId').value = '';
+  document.getElementById('tplName').value = '';
+  document.getElementById('tplDay').value = '';
+  document.getElementById('tplPriority').value = 'normal';
+  document.getElementById('tplNote').value = '';
+  document.getElementById('templateDeleteWrap').style.display = 'none';
+  fillCompanySelect('tplCompany', '__all__', true);
+  openModal('templateModal');
+}
+
+function openEditTemplate(id) {
+  const t = DATA.templates.find(x => x.id === id);
+  if (!t) return;
+  document.getElementById('templateModalTitle').textContent = '编辑模板';
+  document.getElementById('templateEditId').value = id;
+  document.getElementById('tplName').value = t.name;
+  document.getElementById('tplDay').value = t.day;
+  document.getElementById('tplPriority').value = t.priority;
+  document.getElementById('tplNote').value = t.note || '';
+  document.getElementById('templateDeleteWrap').style.display = 'block';
+  fillCompanySelect('tplCompany', t.companyId, true);
+  openModal('templateModal');
+}
+
+function saveTemplate() {
+  const id = document.getElementById('templateEditId').value;
+  const name = document.getElementById('tplName').value.trim();
+  const day = parseInt(document.getElementById('tplDay').value);
+  const priority = document.getElementById('tplPriority').value;
+  const companyId = document.getElementById('tplCompany').value;
+  const note = document.getElementById('tplNote').value.trim();
+
+  if (!name) { showToast('请输入事项名称'); return; }
+  if (!day || day < 1 || day > 31) { showToast('请输入有效日期（1-31）'); return; }
+
+  if (id) {
+    const t = DATA.templates.find(x => x.id === id);
+    if (t) { Object.assign(t, { name, day, priority, companyId, note }); }
+  } else {
+    DATA.templates.push({ id: genId(), name, day, priority, companyId, note });
+  }
+  saveData();
+  closeModal('templateModal');
+  renderTemplates();
+  showToast('保存成功');
+}
+
+function deleteTemplate() {
+  const id = document.getElementById('templateEditId').value;
+  if (!id) return;
+  showConfirm('确定删除这个模板？', () => {
+    DATA.templates = DATA.templates.filter(x => x.id !== id);
+    saveData();
+    closeModal('templateModal');
+    renderTemplates();
+    showToast('已删除');
+  });
+}
+
+function generateMonthTasks() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth();
+  const monthStr = `${year}-${String(month+1).padStart(2,'0')}`;
+  let count = 0;
+
+  const companies = DATA.companies;
+
+  DATA.templates.forEach(tpl => {
+    const targetCompanies = tpl.companyId === '__all__' ? companies.map(c => c.id) : [tpl.companyId];
+    targetCompanies.forEach(cid => {
+      // 检查是否已存在
+      const due = `${monthStr}-${String(tpl.day).padStart(2,'0')}`;
+      const exists = DATA.todos.some(t => t.title === tpl.name && t.companyId === cid && t.due === due);
+      if (!exists) {
+        DATA.todos.push({
+          id: genId(),
+          title: tpl.name,
+          due: due,
+          priority: tpl.priority,
+          companyId: cid,
+          note: tpl.note || '',
+          done: false,
+          createdAt: Date.now()
+        });
+        count++;
+      }
+    });
+  });
+
+  saveData();
+  renderTodos();
+  switchPage('pageTodo', document.querySelector('.nav-item'));
+  showToast(count > 0 ? `已生成 ${count} 条待办` : '本月待办已存在，无需重复生成');
+}
+
+// ========== 公司管理 ==========
+function renderSettings() {
+  document.getElementById('companyList').innerHTML = DATA.companies.map(c => `
+    <div class="setting-item">
+      <span class="setting-label">${c.name}</span>
+      <span class="setting-value" style="cursor:pointer;color:var(--danger)" onclick="removeCompany('${c.id}')">删除</span>
+    </div>
+  `).join('');
+}
+
+function openAddCompany() {
+  document.getElementById('companyName').value = '';
+  openModal('companyModal');
+}
+
+function saveCompany() {
+  const name = document.getElementById('companyName').value.trim();
+  if (!name) { showToast('请输入公司名称'); return; }
+  DATA.companies.push({ id: genId(), name });
+  saveData();
+  closeModal('companyModal');
+  renderCompanyTabs();
+  renderSettings();
+  showToast('添加成功');
+}
+
+function removeCompany(id) {
+  const name = getCompanyName(id);
+  showConfirm(`确定删除「${name}」？相关待办和归档不会被删除。`, () => {
+    DATA.companies = DATA.companies.filter(c => c.id !== id);
+    if (currentCompanyId === id) currentCompanyId = 'all';
+    saveData();
+    renderCompanyTabs();
+    renderSettings();
+    renderTodos();
+    showToast('已删除');
+  });
+}
+
+// ========== 日历 ==========
+function toggleCalendar() {
+  const wrap = document.getElementById('calendarWrap');
+  const toggle = document.getElementById('calToggle');
+  if (wrap.style.display === 'none') {
+    wrap.style.display = 'block';
+    toggle.textContent = '▲';
+  } else {
+    wrap.style.display = 'none';
+    toggle.textContent = '▼';
+  }
+}
+
+let showDone = false;
+function toggleDone() {
+  showDone = !showDone;
+  const list = document.getElementById('doneList');
+  const toggle = document.getElementById('doneToggle');
+  list.style.display = showDone ? 'block' : 'none';
+  toggle.textContent = showDone ? '▲' : '▼';
+}
+
+function changeMonth(delta) {
+  calMonth += delta;
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  if (calMonth < 0) { calMonth = 11; calYear--; }
+  renderCalendar();
+}
+
+function renderCalendar() {
+  const now = new Date();
+  if (!calYear) { calYear = now.getFullYear(); calMonth = now.getMonth(); }
+
+  document.getElementById('calTitle').textContent = `${calYear}年${calMonth + 1}月`;
+
+  const firstDay = new Date(calYear, calMonth, 1).getDay();
+  const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+  const daysInPrev = new Date(calYear, calMonth, 0).getDate();
+  const today = now.getDate();
+
+  // 收集本月有任务的日期
+  const taskDays = new Set();
+  getFilteredTodos().filter(t => !t.done).forEach(t => {
+    const d = new Date(t.due);
+    if (d.getFullYear() === calYear && d.getMonth() === calMonth) {
+      taskDays.add(d.getDate());
+    }
+  });
+
+  let html = ['日','一','二','三','四','五','六'].map(d => `<div class="cal-header">${d}</div>`).join('');
+
+  // 上月填充
+  for (let i = firstDay - 1; i >= 0; i--) {
+    html += `<div class="cal-day other-month">${daysInPrev - i}</div>`;
+  }
+  // 本月
+  for (let d = 1; d <= daysInMonth; d++) {
+    const isToday = calYear === now.getFullYear() && calMonth === now.getMonth() && d === today;
+    const hasTask = taskDays.has(d);
+    html += `<div class="cal-day${isToday?' today':''}${hasTask?' has-task':''}">${d}</div>`;
+  }
+  // 下月填充
+  const total = firstDay + daysInMonth;
+  const remain = total % 7 === 0 ? 0 : 7 - (total % 7);
+  for (let i = 1; i <= remain; i++) {
+    html += `<div class="cal-day other-month">${i}</div>`;
+  }
+
+  document.getElementById('calGrid').innerHTML = html;
+}
+
+// ========== 数据导入导出 ==========
+function exportData() {
+  const blob = new Blob([JSON.stringify(DATA, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `会计工作台_备份_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('导出成功');
+}
+
+function importData() {
+  document.getElementById('importFileInput').click();
+}
+
+function handleImportFile(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    try {
+      const imported = JSON.parse(ev.target.result);
+      if (imported.companies && imported.todos) {
+        showConfirm('导入将覆盖现有数据，确定继续？', () => {
+          DATA = imported;
+          saveData();
+          currentCompanyId = DATA.currentCompany || 'all';
+          renderCompanyTabs();
+          renderAll();
+          showToast('导入成功');
+        });
+      } else {
+        showToast('文件格式不正确');
+      }
+    } catch(err) {
+      showToast('文件解析失败');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+function confirmClearData() {
+  showConfirm('确定清空所有数据？此操作不可恢复！', () => {
+    DATA = defaultData();
+    currentCompanyId = 'all';
+    saveData();
+    renderCompanyTabs();
+    renderAll();
+    showToast('已清空');
+  });
+}
+
+// ========== 模态框 ==========
+function openModal(id) { document.getElementById(id).classList.add('show'); }
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+function fillCompanySelect(elId, selected, includeAll) {
+  const el = document.getElementById(elId);
+  let html = includeAll ? `<option value="__all__">所有公司</option>` : '';
+  DATA.companies.forEach(c => {
+    html += `<option value="${c.id}" ${selected === c.id ? 'selected' : ''}>${c.name}</option>`;
+  });
+  el.innerHTML = html;
+  if (selected && !includeAll) el.value = selected;
+}
+
+function showConfirm(msg, cb) {
+  document.getElementById('confirmMsg').textContent = msg;
+  document.getElementById('confirmBox').classList.add('show');
+  confirmCallback = cb;
+}
+function closeConfirm() {
+  document.getElementById('confirmBox').classList.remove('show');
+  confirmCallback = null;
+}
+function confirmOk() {
+  if (confirmCallback) confirmCallback();
+  closeConfirm();
+}
+
+function todayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+// ========== 初始化 ==========
+function renderAll() {
+  renderTodos();
+  renderArchive();
+  renderTemplates();
+  renderSettings();
+}
+
+function init() {
+  // 日期
+  const now = new Date();
+  const weekDays = ['日','一','二','三','四','五','六'];
+  document.getElementById('headerDate').textContent =
+    `${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日 周${weekDays[now.getDay()]}`;
+
+  renderCompanyTabs();
+  renderAll();
+
+  // 点击模态框背景关闭
+  document.querySelectorAll('.modal-overlay').forEach(el => {
+    el.addEventListener('click', function(e) {
+      if (e.target === this) this.classList.remove('show');
+    });
+  });
+}
+
+init();
+
+// PWA Service Worker 注册
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(function(){});
+}
+
+// PWA 安装提示（安卓）
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', function(e) {
+  e.preventDefault();
+  deferredPrompt = e;
+});
+</script>
+</body>
+</html>
