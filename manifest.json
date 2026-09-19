@@ -1,0 +1,18 @@
+{
+  "name": "会计工作台",
+  "short_name": "会计工作台",
+  "description": "兼职会计的月度待办提醒与工作归档工具",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F5F6FA",
+  "theme_color": "#4F6EF7",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='96' fill='%234F6EF7'/><text x='256' y='340' font-size='260' text-anchor='middle' fill='white' font-family='Arial'>📊</text></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
